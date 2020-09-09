@@ -56,7 +56,7 @@ make
 
 GCC 5 or later is required.
 
-# Building on desktop Linux:
+# Building on desktop
 
 For building on desktop linux, follow these steps as per your distribution:
 
@@ -76,6 +76,23 @@ make
 sudo dnf install cmake avahi-compat-libdns_sd-devel libplist-devel openssl-devel \
     gstreamer1-plugins-base-devel gstreamer1-libav gstreamer1-vaapi \
     gstreamer1-plugins-bad-free
+mkdir build
+cd build
+cmake ..
+make
+```
+
+## For building on macOS 10.15 or 11.0, follow these steps:
+
+```bash
+brew install cmake openssl libplist gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav
+
+export LIBRARY_PATH="/usr/local/lib"
+export CPATH="/usr/local/include"
+export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
+export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
+
 mkdir build
 cd build
 cmake ..
