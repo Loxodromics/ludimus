@@ -33,6 +33,13 @@
 #include "renderers/video_renderer.h"
 #include "renderers/audio_renderer.h"
 
+#ifdef __APPLE__
+#include <glib-unix.h>
+#include <gst/gst.h>
+#include <gst/app/gstappsrc.h>
+#endif
+
+
 #define VERSION "1.2"
 
 #define DEFAULT_NAME "RPiPlay"
@@ -97,6 +104,35 @@ static const audio_renderer_list_entry_t audio_renderers[] = {
 #endif
 };
 
+#ifdef __APPLE__
+static GMainLoop *loop;
+static guint signal_watch_intr_id;
+static guint signal_watch_term_id;
+
+void intr_main_loop(gpointer user_data) {
+    signal_watch_intr_id = 0;
+    g_main_loop_quit(loop);
+}
+
+void term_main_loop(gpointer user_data) {
+    signal_watch_term_id = 0;
+    g_main_loop_quit(loop);
+}
+
+void main_loop() {
+    GstElement *pipeline = gst_pipeline_new(NULL);
+    signal_watch_intr_id = g_unix_signal_add(SIGINT, (GSourceFunc) intr_main_loop, pipeline);
+    signal_watch_term_id = g_unix_signal_add(SIGTERM, (GSourceFunc) term_main_loop, pipeline);
+    loop = g_main_loop_new(NULL, FALSE);
+    g_main_loop_run(loop);
+    
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_object_unref(pipeline);
+    if (signal_watch_intr_id > 0) g_source_remove(signal_watch_intr_id);
+    if (signal_watch_term_id > 0) g_source_remove(signal_watch_term_id);
+    g_main_loop_unref(loop);
+}
+#else
 static void signal_handler(int sig) {
     switch (sig) {
         case SIGINT:
@@ -115,6 +151,7 @@ static void init_signals(void) {
     sigaction(SIGINT, &sigact, NULL);
     sigaction(SIGTERM, &sigact, NULL);
 }
+#endif
 
 static int parse_hw_addr(std::string str, std::vector<char> &hw_addr) {
     for (int i = 0; i < str.length(); i += 3) {
@@ -177,8 +214,10 @@ void print_info(char *name) {
 }
 
 int main(int argc, char *argv[]) {
+#ifndef __APPLE__
     init_signals();
-    
+#endif
+    background_mode_t background = DEFAULT_BACKGROUND_MODE;
     std::string server_name = DEFAULT_NAME;
     std::vector<char> server_hw_addr = DEFAULT_HW_ADDRESS;
     bool debug_log = DEFAULT_DEBUG_LOG;
@@ -270,10 +309,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+#ifdef __APPLE__
+    main_loop();
+#else
     running = true;
     while (running) {
         sleep(1);
     }
+#endif
 
     LOGI("Stopping...");
     stop_server();
