@@ -15,6 +15,8 @@ set( RENDERER_FLAGS "${RENDERER_FLAGS} -DHAS_DUMMY_RENDERER" )
 set( RENDERER_SOURCES audio_renderer_dummy.c video_renderer_dummy.c )
 set( RENDERER_LINK_LIBS "" )
 set( RENDERER_INCLUDE_DIRS "" )
+set( RENDERER_LIBRARY_DIRS "" )
+set( BUILD_RESTREAM TRUE )
 
 # Check for availability of OpenMAX libraries on Raspberry Pi
 find_library( BRCM_GLES_V2 brcmGLESv2 HINTS ${CMAKE_SYSROOT}/opt/vc/lib/ )
@@ -72,6 +74,7 @@ if( PKG_CONFIG_FOUND )
     set( RENDERER_FLAGS "${RENDERER_FLAGS} -DHAS_GSTREAMER_RENDERER" )
     set( RENDERER_SOURCES ${RENDERER_SOURCES} audio_renderer_gstreamer.c video_renderer_gstreamer.c )
     set( RENDERER_LINK_LIBS ${RENDERER_LINK_LIBS} ${GST_LIBRARIES} )
+    set( RENDERER_LIBRARY_DIRS ${RENDERER_LINK_LIBS} ${GST_LIBRARY_DIRS} )
     set( RENDERER_INCLUDE_DIRS ${RENDERER_INCLUDE_DIRS} ${GST_INCLUDE_DIRS} )
   else()
     message( STATUS "GStreamer not found, skipping compilation of GStreamer renderer" )
@@ -84,6 +87,7 @@ endif()
 add_library( renderers STATIC ${RENDERER_SOURCES})
 target_link_libraries ( renderers ${RENDERER_LINK_LIBS} )
 target_include_directories( renderers PRIVATE ${RENDERER_INCLUDE_DIRS} )
+target_link_directories( renderers PUBLIC ${RENDERER_LIBRARY_DIRS} )
 
 # Pass the final renderer flags up to the parent scope so it knows which renderers
 # will be available to use.
