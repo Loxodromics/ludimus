@@ -10,10 +10,10 @@ add_library( airplay
         )
 
 
-if(UNIX AND NOT APPLE)
+if( UNIX AND NOT APPLE )
     find_library( LIBPLIST NAMES plist plist-2.0 )
 else()
-    find_library(LIBPLIST libplist-2.0.a REQUIRED)
+    find_library( LIBPLIST libplist-2.0.a REQUIRED )
 endif()
 
 target_link_libraries( airplay

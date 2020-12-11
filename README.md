@@ -82,10 +82,10 @@ cmake ..
 make
 ```
 
-## For building on macOS 10.15 or 11.0, follow these steps:
+## macOS
 
 ```bash
-brew install cmake openssl libplist gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly gst-libav
+brew install cmake openssl libplist gst-plugins-good gst-plugins-bad gst-libav libao
 
 export LIBRARY_PATH="/usr/local/lib"
 export CPATH="/usr/local/include"
